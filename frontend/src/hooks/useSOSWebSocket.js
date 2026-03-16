@@ -23,6 +23,10 @@ export function useSOSWebSocket() {
         setLatestSignal(data);
         setNewAlert(true);
         setTimeout(() => setNewAlert(false), 5000); // clear alert after 5s
+      } else if (data.event === 'signal_updated') {
+        if (latestSignal && latestSignal.id === data.id && data.status !== 'active') {
+          setNewAlert(false);
+        }
       }
     };
 

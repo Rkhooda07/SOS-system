@@ -1,10 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.schemas.signal import SignalCreate, SignalResponse
-from app.services.signal_service import save_signal, broadcast_signal, get_signals, get_latest_signal
+from app.schemas.signal import SignalCreate, SignalResponse, SignalUpdate
+from app.services.signal_service import (
+    save_signal, broadcast_signal, get_signals, get_latest_signal, update_signal_status
+)
 
 router = APIRouter(prefix="/api/sos", tags=["SOS Signals"])
+
+@router.patch("/signal/{signal_id}", response_model=SignalResponse)
+async def patch_signal(signal_id: int, payload: SignalUpdate, db: AsyncSession = Depends(get_db)):
+    """Mark a signal as resolved or dismissed."""
+    signal = await update_signal_status(db, signal_id, payload)
+    if not signal:
+        raise HTTPException(status_code=404, detail="Signal not found")
+    return signal
 
 @router.post("/signal", response_model=SignalResponse, status_code=201)
 async def receive_signal(payload: SignalCreate, db: AsyncSession = Depends(get_db)):

@@ -1,9 +1,24 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from app.models.signal import Signal
-from app.schemas.signal import SignalCreate
+from app.schemas.signal import SignalCreate, SignalUpdate
 from app.core.ws_manager import ws_manager
 from typing import Optional
+
+async def update_signal_status(db: AsyncSession, signal_id: int, payload: SignalUpdate) -> Optional[Signal]:
+    result = await db.execute(select(Signal).where(Signal.id == signal_id))
+    signal = result.scalar_one_or_none()
+    if signal:
+        signal.status = payload.status
+        await db.commit()
+        await db.refresh(signal)
+        # Broadcast the update so the frontend can remove the flashing alert
+        await ws_manager.broadcast({
+            "event": "signal_updated",
+            "id": signal.id,
+            "status": signal.status
+        })
+    return signal
 
 async def save_signal(db: AsyncSession, payload: SignalCreate) -> Signal:
     signal = Signal(**payload.model_dump())

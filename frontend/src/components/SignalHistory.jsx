@@ -1,6 +1,15 @@
 import React from 'react';
+import axios from 'axios';
 
 export default function SignalHistory({ signals, loading, latestId }) {
+  const handleResolve = async (id) => {
+    try {
+      await axios.patch(`/api/sos/signal/${id}`, { status: 'resolved' });
+    } catch (err) {
+      console.error('Failed to resolve signal:', err);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ 
@@ -44,16 +53,35 @@ export default function SignalHistory({ signals, loading, latestId }) {
               <div style={{ color: 'var(--text-primary)', marginBottom: '4px' }}>
                 📍 {s.latitude.toFixed(5)}, {s.longitude.toFixed(5)}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '12px', alignItems: 'center' }}>
                 <span>🔋 {s.battery ?? '?'}%</span>
-                <span style={{ 
-                    color: s.status === 'active' ? 'var(--accent-red)' : 'var(--accent-green)',
-                    textTransform: 'uppercase',
-                    fontWeight: 700,
-                    fontSize: '10px'
-                }}>
-                    {s.status}
-                </span>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span style={{ 
+                        color: s.status === 'active' ? 'var(--accent-red)' : 'var(--accent-green)',
+                        textTransform: 'uppercase',
+                        fontWeight: 700,
+                        fontSize: '10px'
+                    }}>
+                        {s.status}
+                    </span>
+                    {s.status === 'active' && (
+                        <button 
+                            onClick={() => handleResolve(s.id)}
+                            style={{
+                                background: 'var(--accent-green)',
+                                border: 'none',
+                                borderRadius: '4px',
+                                color: 'white',
+                                padding: '2px 8px',
+                                fontSize: '10px',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            RESOLVE
+                        </button>
+                    )}
+                </div>
               </div>
             </div>
           ))

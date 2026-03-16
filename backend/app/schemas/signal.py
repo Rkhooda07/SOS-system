@@ -9,6 +9,9 @@ class SignalCreate(BaseModel):
     longitude:  float = Field(..., ge=-180, le=180)
     battery:    Optional[int] = Field(None, ge=0, le=100)
 
+class SignalUpdate(BaseModel):
+    status: str = Field(..., pattern="^(resolved|dismissed)$")
+
 # What we send back in responses
 class SignalResponse(BaseModel):
     id:          int
