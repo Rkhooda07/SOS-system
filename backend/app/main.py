@@ -5,12 +5,14 @@ from app.config import settings
 from app.database import init_db
 import app.models.signal # Ensure models are loaded for init_db
 
+from app.routes.signals import router as signals_router
+from app.routes.websocket import router as ws_router
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: create DB tables if they don't exist
     await init_db()
     yield
-    # Shutdown logic if needed
 
 app = FastAPI(
     title="Lifeline SOS API",
@@ -27,6 +29,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(signals_router)
+app.include_router(ws_router)
 
 @app.get("/health")
 async def health():

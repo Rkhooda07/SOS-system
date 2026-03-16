@@ -3,6 +3,7 @@ from sqlalchemy import select, desc
 from app.models.signal import Signal
 from app.schemas.signal import SignalCreate
 from app.core.ws_manager import ws_manager
+from typing import Optional
 
 async def save_signal(db: AsyncSession, payload: SignalCreate) -> Signal:
     signal = Signal(**payload.model_dump())
@@ -30,7 +31,7 @@ async def get_signals(db: AsyncSession, limit: int = 50) -> list[Signal]:
     )
     return result.scalars().all()
 
-async def get_latest_signal(db: AsyncSession, device_id: str) -> Signal | None:
+async def get_latest_signal(db: AsyncSession, device_id: str) -> Optional[Signal]:
     result = await db.execute(
         select(Signal)
         .where(Signal.device_id == device_id)
